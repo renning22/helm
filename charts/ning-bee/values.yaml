@@ -22,7 +22,7 @@ serviceAccount:
 ## StatefulSet's ordering guarantees: OrderedReady or Parallel
 ## OrderedReady - launches or terminates all pods in ordered way
 ## Parallel - launches or terminates all pods in parallel
-podManagementPolicy: OrderedReady
+podManagementPolicy: Parallel
 
 ## Bee process inside container is run with gid/uid 999
 ## fsGroup=999 enables mounting external volumes with appropriate permissions
@@ -92,7 +92,7 @@ ingressDebug:
       tlsSecret: ""
   tls: false
 
-replicaCount: 1
+replicaCount: 3
 
 updateStrategy:
   type: RollingUpdate
