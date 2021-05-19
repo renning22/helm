@@ -90,7 +90,7 @@ spec:
             - name: bee-swarm
               mountPath: /tmp/bee
         {{- end }}
-        {{- if .Values.clefSettings.enabled }}
+        {{- if .Values.clefSettings.init }}
         - name: init-clef
           image: ethersphere/clef:0.4.12
           command:
