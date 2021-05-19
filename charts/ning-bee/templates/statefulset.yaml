@@ -223,7 +223,7 @@ spec:
           {{- end }}
           command:
             - /entrypoint.sh
-            - run
+            - full
           ports:
             - containerPort: 8550
               name: api
