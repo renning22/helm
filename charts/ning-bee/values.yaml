@@ -174,15 +174,15 @@ beeConfig:
   ## Cause the node to always accept incoming connections
   bootnode_mode: false
   ## Enable clef signer
-  clef_signer_enable: false
+  clef_signer_enable: true
   ## Set clef signer endpoint
-  clef_signer_endpoint: ""
+  clef_signer_endpoint: "http://localhost:8550"
   ## Origins with CORS headers enabled
   cors_allowed_origins: ""
   ## Data directory
   data_dir: /home/bee/.bee
   ## DB capacity in chunks
-  cache_capacity: 1000000
+  db_capacity: 5000000
   ## Number of open files allowed by database
   db_open_files_limit: 200
   ## Size of block cache of the database in bytes
@@ -207,7 +207,7 @@ beeConfig:
   network_id: 1
   ## Password for decrypting keys (please change it for production deployments)
   ## If not set, it will be automatically generated
-  password: beekeeper
+  password: chainpion123
   ## Path to a file that contains password for decrypting keys is /home/bee/.secret/password
   usePasswordFile: false
   ## Use existing secret (ignores previous password)
@@ -232,9 +232,9 @@ beeConfig:
   ## Whether node starts with no listen addresses for p2p
   standalone: false
   ## Enable SWAP
-  swap_enable: false
+  swap_enable: true
   ## Set swap ethereum blockchain endpoint
-  swap_endpoint: http://localhost:8545
+  swap_endpoint: https://goerli.infura.io/v3/562b4c3a38a344f6892b133c4b79e928
   ## Set swap factory address
   swap_factory_address: ""
   ## Set swap legacy factory addresses
@@ -250,9 +250,9 @@ beeConfig:
   ## Service name identifier for tracing
   tracing_service_name: bee
   ## Log verbosity level 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=trace
-  verbosity: 3
+  verbosity: 4
   ## Send a welcome message string during handshakes
-  welcome_message: "Welcome to the Swarm, you are Bee-ing connected!"
+  welcome_message: "This is Ning's bee!"
 
 ## If you prefer setting config options using ENV variables you can set beeEnv
 ## Use same option names as in beeConfig it will be translated to ENV variable format: api_addr -> BEE_API_ADDR
@@ -285,13 +285,13 @@ swarmSettings:
 ## If enabled it will start clef sidecar container that will auto approve every request
 ## Clef keys are pregenerated examples and can be replaced with other values
 clefSettings:
-  enabled: false
-  clefKeys:
-    bee-0: '{"address":"fd50ede4954655b993ed69238c55219da7e81acf","crypto":{"cipher":"aes-128-ctr","ciphertext":"1c0f603b0dffe53294c7ca02c1a2800d81d855970db0df1a84cc11bc1d6cf364","cipherparams":{"iv":"11c9ac512348d7ccfe5ee59d9c9388d3"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f6d7a0947da105fa5ef70fa298f65409d12967108c0e6260f847dc2b10455b89"},"mac":"fc6585e300ad3cb21c5f648b16b8a59ca33bcf13c58197176ffee4786628eaeb"},"id":"4911f965-b425-4011-895d-a2008f859859","version":3}'
-  chainId: 12345
+  enabled: true
+  # clefKeys:
+  #   bee-0: '{"address":"fd50ede4954655b993ed69238c55219da7e81acf","crypto":{"cipher":"aes-128-ctr","ciphertext":"1c0f603b0dffe53294c7ca02c1a2800d81d855970db0df1a84cc11bc1d6cf364","cipherparams":{"iv":"11c9ac512348d7ccfe5ee59d9c9388d3"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f6d7a0947da105fa5ef70fa298f65409d12967108c0e6260f847dc2b10455b89"},"mac":"fc6585e300ad3cb21c5f648b16b8a59ca33bcf13c58197176ffee4786628eaeb"},"id":"4911f965-b425-4011-895d-a2008f859859","version":3}'
+  chainId: 5
   ## Use existing secret (ignores previous clefKeys)
   # existingSecret:
   ## Password for decrypting key (please change it for production deployments)
-  password: clefbeesecret
+  # password: clefbeesecret
   ## Use existing password (ignores previous keyPassword)
   # existingPasswordSecret:
