@@ -2328,6 +2328,34 @@ entries:
   ning-bee:
   - apiVersion: v2
     appVersion: latest
+    created: "2021-05-19T12:51:28.58245587Z"
+    description: Ning's Ethereum Swarm Bee Helm chart for Kubernetes
+    digest: fb86bd7c05c982d40bae68b72c44f84f8b4861f4a17629cfba71f8a60338c091
+    home: https://swarm.ethereum.org
+    icon: https://swarm-guide.readthedocs.io/en/latest/_images/swarm.png
+    keywords:
+    - blockchain
+    - ethereum
+    - storage
+    - swarm
+    - web3
+    kubeVersion: '>=1.15.0-0'
+    maintainers:
+    - email: devops@ethswarm.org
+      name: devops
+    - email: svetomir@ethswarm.org
+      name: svetomir
+    - email: vandot@ethswarm.org
+      name: vandot
+    name: ning-bee
+    sources:
+    - https://github.com/ethersphere/bee
+    type: application
+    urls:
+    - https://github.com/renning22/helm/releases/download/ning-bee-0.0.4/ning-bee-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
+    appVersion: latest
     created: "2021-05-19T12:44:23.685018612Z"
     description: Ning's Ethereum Swarm Bee Helm chart for Kubernetes
     digest: 1a49ab3b1ec110054af482743fbdb53a759834e375fbbaf32ecc715d2e2e47fd
@@ -2526,4 +2554,4 @@ entries:
     urls:
     - https://github.com/ethersphere/helm/releases/download/tokenexporter-0.1.0/tokenexporter-0.1.0.tgz
     version: 0.1.0
-generated: "2021-05-19T12:44:23.68633335Z"
+generated: "2021-05-19T12:51:28.583421835Z"
