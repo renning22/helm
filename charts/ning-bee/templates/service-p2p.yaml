@@ -1,0 +1,30 @@
+{{- $root := . -}}
+
+{{- range $i, $e := until (int $root.Values.replicaCount) }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bee.fullname" $root }}-{{ $i }}-p2p
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "bee.labels" $root | nindent 4 }}
+    pod: {{ include "bee.fullname" $root }}-{{ $i }}
+    endpoint: p2p
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local
+  ports:
+    - name: p2p
+      port: {{ int (split ":" $root.Values.beeConfig.p2p_addr )._1 }}
+      protocol: TCP
+      targetPort: p2p
+      {{- if $root.Values.p2pFixedPort.enabled }}
+      nodePort: {{ add $root.Values.p2pFixedPort.nodePortStart $i }}
+      {{- end }}
+  selector:
+    {{- include "bee.selectorLabels" $root | nindent 4 }}
+    statefulset.kubernetes.io/pod-name: {{ include "bee.fullname" $root }}-{{ $i }}
+
+{{- end }}

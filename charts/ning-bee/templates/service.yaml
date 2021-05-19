@@ -1,0 +1,46 @@
+{{- $root := . -}}
+{{- $fullName := include "bee.fullname" $root -}}
+{{- $svcPort := $root.Values.service.port -}}
+
+# MAIN SERVICE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bee.labels" $root | nindent 4 }}
+spec:
+  ports:
+    - name: api
+      port: {{ $svcPort }}
+      protocol: TCP
+      targetPort: api
+  selector:
+    {{- include "bee.selectorLabels" $root | nindent 4 }}
+  type: {{ $root.Values.service.type }}
+
+# PER POD SERVICE
+{{- range $i, $e := until (int $root.Values.replicaCount) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-{{ $i }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "bee.labels" $root | nindent 4 }}
+    pod: {{ $fullName }}-{{ $i }}
+    endpoint: api
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      port: {{ int (split ":" $root.Values.beeConfig.api_addr )._1 }}
+      protocol: TCP
+      targetPort: api
+  selector:
+    {{- include "bee.selectorLabels" $root | nindent 4 }}
+    statefulset.kubernetes.io/pod-name: {{ $fullName }}-{{ $i }}
+{{- end }}

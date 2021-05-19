@@ -1,0 +1,312 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "bee.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "bee.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "bee.fullname" . }}-headless
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "bee.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bee.selectorLabels" . | nindent 8 }}
+      {{- if .Values.podLabels }}
+      {{- range $key, $value := .Values.podLabels }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "bee.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.libp2pSettings.enabled .Values.p2pFixedPort.enabled .Values.swarmSettings.enabled .Values.clefSettings.enabled }}
+      initContainers:
+        {{- if .Values.libp2pSettings.enabled }}
+        - name: init-libp2p
+          image: ethersphere/busybox:1.33
+          command:
+            - sh
+            - -c
+            - >
+              export INDEX=$(echo $(hostname) | rev | cut -d'-' -f 1 | rev);
+              mkdir -p /home/bee/.bee/keys;
+              chown -R 999:999 /home/bee/.bee/keys;
+              export KEY=$(cat /tmp/bee/libp2p.map | grep bee-${INDEX}: | cut -d' ' -f2);
+              if [ -z "${KEY}" ]; then exit 0; fi;
+              printf '%s' "${KEY}" > /home/bee/.bee/keys/libp2p.key;
+              echo 'node initialization done';
+          volumeMounts:
+            - name: data
+              mountPath: /home/bee/.bee
+            - name: bee-libp2p
+              mountPath: /tmp/bee
+        {{- end }}
+        {{- if .Values.swarmSettings.enabled }}
+        - name: init-swarm
+          image: ethersphere/busybox:1.33
+          command:
+            - sh
+            - -c
+            - >
+              export INDEX=$(echo $(hostname) | rev | cut -d'-' -f 1 | rev);
+              mkdir -p /home/bee/.bee/keys;
+              chown -R 999:999 /home/bee/.bee/keys;
+              export KEY=$(cat /tmp/bee/swarm.map | grep bee-${INDEX}: | cut -d' ' -f2);
+              if [ -z "${KEY}" ]; then exit 0; fi;
+              printf '%s' "${KEY}" > /home/bee/.bee/keys/swarm.key;
+              echo 'node initialization done';
+          volumeMounts:
+            - name: data
+              mountPath: /home/bee/.bee
+            - name: bee-swarm
+              mountPath: /tmp/bee
+        {{- end }}
+        {{- if .Values.clefSettings.enabled }}
+        - name: init-clef
+          image: ethersphere/clef:0.4.12
+          command:
+            - sh
+            - -c
+            - >
+              export INDEX=$(echo $(hostname) | rev | cut -d'-' -f 1 | rev);
+              mkdir -p /app/data/keystore;
+              chown -R nobody:nogroup /app/data/keystore;
+              export KEY=$(cat /tmp/bee/clef.map | grep bee-${INDEX}: | cut -d' ' -f2);
+              if [ -n "${KEY}" ]; then printf '%s' "${KEY}" > /app/data/keystore/clef.key; fi;
+              /entrypoint.sh init;
+              echo 'clef initialization done';
+          volumeMounts:
+            - name: clef
+              mountPath: /app/data
+            - name: bee-clef
+              mountPath: /tmp/bee
+            {{- if .Values.clefSettings.password }}
+            - name: clef-secret
+              mountPath: /app/data/password
+              subPath: password
+              readOnly: true
+            {{- end }}
+        {{- end }}
+        {{- if .Values.p2pFixedPort.enabled }}
+        - name: init-natport
+          image: ethersphere/busybox:1.33
+          command:
+            - sh
+            - -c
+            - >
+              PUBLIC_IP=$(wget -T 2 http://169.254.169.254/latest/meta-data/public-ipv4 -q -O -);
+              export INDEX=$(echo $(hostname) | rev | cut -d'-' -f 1 | rev);
+              NAT_PORT=$(( {{ .Values.p2pFixedPort.nodePortStart }} + INDEX ));
+              cp -p /tmp/.bee.yaml /home/bee/.bee.yaml;
+              printf 'nat-addr: %s:%s\n' "${PUBLIC_IP}" "${NAT_PORT}" >> /home/bee/.bee.yaml;
+              echo 'node initialization done';
+          volumeMounts:
+            - name: config-file
+              mountPath: /home/bee
+            - name: config
+              mountPath: /tmp/.bee.yaml
+              subPath: .bee.yaml
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ include "bee.image" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if or .Values.beeEnv .Values.netemCmd }}
+          env:
+            {{- if .Values.beeEnv }}
+            {{- range $key, $value := .Values.beeEnv }}
+            - name: BEE_{{ $key | upper }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.netemCmd }}
+            - name: NETEM_CMD
+              value: {{ .Values.netemCmd }}
+            {{- end }}
+          {{- end }}
+          command:
+            {{- range .Values.beeCommand }}
+            - {{ . }}
+            {{- end }}
+          ports:
+            - containerPort: {{ int (split ":" .Values.beeConfig.api_addr )._1 }}
+              name: api
+              protocol: TCP
+            - containerPort: {{ int (split ":" .Values.beeConfig.p2p_addr )._1 }}
+              name: p2p
+              protocol: TCP
+          {{- if .Values.beeConfig.debug_api_enable }}
+            - containerPort: {{ int (split ":" .Values.beeConfig.debug_api_addr )._1 }}
+              name: debug
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: debug
+            initialDelaySeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: debug
+            initialDelaySeconds: 20
+          {{- else }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: api
+            initialDelaySeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: api
+            initialDelaySeconds: 20
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.p2pFixedPort.enabled }}
+            - name: config-file
+              mountPath: /home/bee
+            {{- else }}
+            - name: config
+              mountPath: /home/bee/.bee.yaml
+              readOnly: true
+              subPath: .bee.yaml
+            {{- end }}
+            - name: data
+              mountPath: /home/bee/.bee
+            {{- if .Values.beeConfig.usePasswordFile }}
+            - name: bee-secret
+              mountPath: /home/bee/.secret
+              readOnly: true
+            {{- end }}
+        {{- if .Values.clefSettings.enabled }}
+        - name: clef
+          image: ethersphere/clef:0.4.12
+          imagePullPolicy: IfNotPresent
+          {{- if .Values.clefSettings.chainId }}
+          env:
+            - name: CLEF_CHAINID
+              value: {{ .Values.clefSettings.chainId | quote }}
+          {{- end }}
+          command:
+            - /entrypoint.sh
+            - run
+          ports:
+            - containerPort: 8550
+              name: api
+              protocol: TCP
+          volumeMounts:
+            - name: clef
+              mountPath: /app/data
+              readOnly: false
+            {{- if .Values.clefSettings.password }}
+            - name: clef-secret
+              mountPath: /app/data/password
+              subPath: password
+              readOnly: true
+            {{- end }}
+        {{- end }}
+      volumes:
+        - name: config-file
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: {{ template "bee.fullname" . }}
+        {{- if .Values.beeConfig.usePasswordFile }}
+        - name: bee-secret
+          secret:
+            secretName: {{ template "bee.secretName" . }}
+            items:
+              - key: {{ template "bee.secretPasswordKey" . }}
+                path: password
+        {{- end }}
+        {{- if .Values.libp2pSettings.enabled }}
+        - name: bee-libp2p
+          secret:
+            secretName: {{ template "bee.libp2pKeysSecretName" . }}
+            items:
+              - key: {{ template "bee.libp2pKeysSecretKey" . }}
+                path: libp2p.map
+        {{- end }}
+        {{- if .Values.swarmSettings.enabled }}
+        - name: bee-swarm
+          secret:
+            secretName: {{ template "bee.swarmKeysSecretName" . }}
+            items:
+              - key: {{ template "bee.swarmKeysSecretKey" . }}
+                path: swarm.map
+        {{- end }}
+        {{- if .Values.clefSettings.enabled }}
+        - name: clef
+          emptyDir: {}
+        - name: bee-clef
+          secret:
+            secretName: {{ template "bee.clefKeysSecretName" . }}
+            items:
+              - key: {{ template "bee.clefKeysSecretKey" . }}
+                path: clef.map
+        {{- if .Values.clefSettings.password }}
+        - name: clef-secret
+          secret:
+            secretName: {{ template "bee.clefSecretName" . }}
+            items:
+              - key: {{ template "bee.clefSecretPasswordKey" . }}
+                path: password
+        {{- end }}
+        {{- end }}
+  {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+  {{- else }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        {{- include "bee.labelsVCT" . | nindent 8 }}
+    spec:
+      accessModes:
+        - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size | quote }}
+    {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: {{ .Values.persistence.storageClass | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}

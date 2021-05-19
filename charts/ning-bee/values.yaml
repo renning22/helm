@@ -1,0 +1,297 @@
+## Default values for bee.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+image:
+  repository: ethersphere/bee
+  tag: 0.5.3
+  # digest: sha256:508a6bc1d3f45acaf98b746d521ee2cb11a895d8334446d2205fe4053b9e3667
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  ## Specifies whether a service account should be created
+  create: false
+  ## Name of the service account to use
+  ## if not set and create is true, a name is generated using the fullname template
+  name:
+
+## StatefulSet's ordering guarantees: OrderedReady or Parallel
+## OrderedReady - launches or terminates all pods in ordered way
+## Parallel - launches or terminates all pods in parallel
+podManagementPolicy: OrderedReady
+
+## Bee process inside container is run with gid/uid 999
+## fsGroup=999 enables mounting external volumes with appropriate permissions
+podSecurityContext:
+  fsGroup: 999
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+## Choose profile for testing bee with real life network scenarios (delays and packet drops)
+## More info here https://github.com/ethersphere/bee-netem/blob/master/README.md
+# netemCmd: "wifi"
+
+service:
+  type: ClusterIP
+  port: 80
+
+## By default and for convenience, for NodePort (p2p service)
+## the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+## You can enable and specify start value and NodePort will be $nodePortStart + $ordinal
+## If wanted port if used by some other service deploy will fail
+p2pFixedPort:
+  enabled: false
+  nodePortStart: 31000
+
+## If enabled, creates ingress for HTTP api
+## Creates one ingress per pod and additionally one common ingress for all pods
+## Total number of created ingress objects is: replicaCount + 1
+## Hostname for 'per pod ingresses' is: <chart fullname>-<i>, or <chart fullname>-<i>.<domain> if domain is specified
+## Hostname for 'common ingress' is: <chart fullname>, or <chart fullname>.<domain> if domain is specified
+## tls.secretName won't be specified if tlsSecret is "", tls must be set to true
+ingress:
+  enabled: false
+  ## Used if cluster version is >= 1.19-0
+  pathType: ImplementationSpecific
+  # ingressClassName: ingress-nginx
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - domain: ""
+      paths: []
+      tlsSecret: ""
+  tls: false
+
+## If enabled and beeConfig.debug_api_enable is enabled, creates ingress for debug api
+## Creates one ingress per pod
+## Total number of created ingress objects is: replicaCount
+## Hostname for 'per pod ingresses' is: <chart fullname>-debug-<i>, or <chart fullname>-debug-<i>.<domain> if domain is specified
+## tls.secretName won't be specified if tlsSecret is "", tls must be set to true
+ingressDebug:
+  enabled: false
+  ## Used if cluster version is >= 1.19-0
+  pathType: ImplementationSpecific
+  # ingressClassName: ingress-nginx
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - domain: ""
+      paths: []
+      tlsSecret: ""
+  tls: false
+
+replicaCount: 1
+
+updateStrategy:
+  type: RollingUpdate
+  ## in case libp2pSettings installation is enabled, if needed (persistance is not enabled)
+  ## uncomment bellow to skip updating first N pods
+  ## recommendation is that bootnodes are first N pods in the cluster
+  # rollingUpdate:
+  #   partition: 1
+
+resources: {}
+  ## If you do want to specify resources, uncomment the following
+  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 1
+  #   ephemeral-storage: 1Gi
+  #   memory: 1Gi
+  # requests:
+  #   cpu: 100m
+  #   ephemeral-storage: 128Mi
+  #   memory: 128Mi
+
+persistence:
+  ## This enables PVC templates that will create one per pod
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  ## Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is set;
+  ## i.e. choosing the default provisioner: gp2 on AWS, standard on GKE, AWS & OpenStack, etc.
+  # storageClass: "-"
+
+## Enable this if you're using https://github.com/coreos/prometheus-operator
+## and beeConfig.debug_api_enable is enabled
+serviceMonitor:
+  enabled: false
+  additionalLabels: {}
+  ## Specify a namespace if needed
+  # namespace: monitoring
+  ## Fallback to the prometheus default unless specified
+  # scrapeInterval: 10s
+  # honorLabels: true
+  ## Set this relabels if using https://github.com/grafana/loki/tree/master/production/helm/loki-stack
+  ## for better ingregration between prometheus-operator and loki-stack
+  # relabelings:
+  # - sourceLabels:
+  #   - __meta_kubernetes_pod_name
+  #   targetLabel: instance
+  # - sourceLabels:
+  #   - __meta_kubernetes_namespace
+  #   - __meta_kubernetes_pod_label_app_kubernetes_io_name
+  #   targetLabel: job
+  #   separator: /
+  #   replacement: $1
+
+podLabels: {}
+podAnnotations: {}
+## Add this annotations if you're using https://github.com/prometheus/prometheus
+## and beeConfig.debug_api_enable is enabled
+  # prometheus.io/scrape: "true"
+  # prometheus.io/port: "1635"
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations: []
+
+beeCommand: ["bee", "start", "--config=.bee.yaml"]
+
+beeConfig:
+  ## HTTP API listen address
+  api_addr: :1633
+  ## Chain block-time
+  block_time: 15
+  ## Initial nodes to connect to
+  bootnode: ""
+  ## Cause the node to always accept incoming connections
+  bootnode_mode: false
+  ## Enable clef signer
+  clef_signer_enable: false
+  ## Set clef signer endpoint
+  clef_signer_endpoint: ""
+  ## Origins with CORS headers enabled
+  cors_allowed_origins: ""
+  ## Data directory
+  data_dir: /home/bee/.bee
+  ## DB capacity in chunks
+  cache_capacity: 1000000
+  ## Number of open files allowed by database
+  db_open_files_limit: 200
+  ## Size of block cache of the database in bytes
+  db_block_cache_capacity: 33554432
+  ## Size of the database write buffer in bytes
+  db_write_buffer_size: 33554432
+  ## Disables db compactions triggered by seeks
+  db_disable_seeks_compaction: false
+  ## Debug HTTP API listen address
+  debug_api_addr: :1635
+  ## Enable debug HTTP API
+  debug_api_enable: false
+  ## Set the run mode - light by default
+  full_node: true
+  ## Disable a set of sensitive features in the api
+  gateway_mode: false
+  ## Enable global pinning
+  global_pinning_enable: false
+  ## NAT exposed address
+  nat_addr: ""
+  ## ID of the Swarm network
+  network_id: 1
+  ## Password for decrypting keys (please change it for production deployments)
+  ## If not set, it will be automatically generated
+  password: beekeeper
+  ## Path to a file that contains password for decrypting keys is /home/bee/.secret/password
+  usePasswordFile: false
+  ## Use existing secret (ignores previous password)
+  # existingSecret:
+  # existingSecretPasswordKey:
+  ## Amount in BZZ below the peers payment threshold when we initiate settlement
+  payment_early: 1000000000000
+  ## Threshold in BZZ where you expect to get paid from your peers
+  payment_threshold: 10000000000000
+  ## Excess debt above payment threshold in BZZ where you disconnect from your peer
+  payment_tolerance: 50000000000000
+  ## Postage stamp address
+  postage_stamp_address: ""
+  ## Price oracle address
+  price_oracle_address: ""
+  ## P2P listen address
+  p2p_addr: :1634
+  ## Enable P2P QUIC transport
+  p2p_quic_enable: false
+  ## Enable P2P WebSocket transport
+  p2p_ws_enable: false
+  ## Whether node starts with no listen addresses for p2p
+  standalone: false
+  ## Enable SWAP
+  swap_enable: false
+  ## Set swap ethereum blockchain endpoint
+  swap_endpoint: http://localhost:8545
+  ## Set swap factory address
+  swap_factory_address: ""
+  ## Set swap legacy factory addresses
+  swap_legacy_factory_addresses: ""
+  ## Set initial deposit if deploying a new chequebook
+  swap_initial_deposit: 10000000000000000
+  ## Resolver connection string
+  resolver_options: ""
+  ## Enable tracing
+  tracing_enable: false
+  ## Endpoint to send tracing data
+  tracing_endpoint: 127.0.0.1:6831
+  ## Service name identifier for tracing
+  tracing_service_name: bee
+  ## Log verbosity level 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=trace
+  verbosity: 3
+  ## Send a welcome message string during handshakes
+  welcome_message: "Welcome to the Swarm, you are Bee-ing connected!"
+
+## If you prefer setting config options using ENV variables you can set beeEnv
+## Use same option names as in beeConfig it will be translated to ENV variable format: api_addr -> BEE_API_ADDR
+## You can specify all options except for usePasswordFile, existingSecret and existingSecretPasswordKey
+# beeEnv:
+#   api_addr: :1633
+#   debug_api_addr: :1635
+#   p2p_addr: :1634
+
+## If enabled, configures pods with defined libp2p keys
+## Libp2p keys are pregenerated examples and can be replaced with other values
+## pods without specified key will autogenerate it during start
+libp2pSettings:
+  enabled: false
+  libp2pKeys:
+    bee-0: '{"address":"6828fe67d8aed6065412dc374b601dce8aac40fe","crypto":{"cipher":"aes-128-ctr","ciphertext":"80fc86951b7c3ef77c1f44ffedade4312937e14673618bc87940bea2d8fe6b1d","cipherparams":{"iv":"58bf5af2fd6b7c796fbfdf853b5e22c1"},"kdf":"scrypt","kdfparams":{"n":32768,"r":8,"p":1,"dklen":32,"salt":"2bc758a178b3a43cb334436bc055cdad4898e1dacc9b9422b602254f29da08ed"},"mac":"c5616ee1343240181f4255a9072923dfc63be7f47ff8fb73519d53c31eb749ae"},"version":3}'
+  ## Use existing secret (ignores previous libp2pKeys)
+  # existingSecret:
+
+## If enabled, configures pods with defined swarm keys
+## Swarm keys are pregenerated examples and can be replaced with other values
+## Pods without specified key will autogenerate it during start
+swarmSettings:
+  enabled: false
+  swarmKeys:
+    bee-0: '{"address":"f176839c150e52fe30e5c2b5c648465c6fdfa532","crypto":{"cipher":"aes-128-ctr","ciphertext":"352af096f0fca9dfbd20a6861bde43d988efe7f179e0a9ffd812a285fdcd63b9","cipherparams":{"iv":"613003f1f1bf93430c92629da33f8828"},"kdf":"scrypt","kdfparams":{"n":32768,"r":8,"p":1,"dklen":32,"salt":"ad1d99a4c64c95c26131e079e8c8a82221d58bf66a7ceb767c33a4c376c564b8"},"mac":"cafda1bc8ca0ffc2b22eb69afd1cf5072fd09412243443be1b0c6832f57924b6"},"version":3}'
+  ## Use existing secret (ignores previous swarmKeys)
+  # existingSecret:
+
+## If enabled it will start clef sidecar container that will auto approve every request
+## Clef keys are pregenerated examples and can be replaced with other values
+clefSettings:
+  enabled: false
+  clefKeys:
+    bee-0: '{"address":"fd50ede4954655b993ed69238c55219da7e81acf","crypto":{"cipher":"aes-128-ctr","ciphertext":"1c0f603b0dffe53294c7ca02c1a2800d81d855970db0df1a84cc11bc1d6cf364","cipherparams":{"iv":"11c9ac512348d7ccfe5ee59d9c9388d3"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f6d7a0947da105fa5ef70fa298f65409d12967108c0e6260f847dc2b10455b89"},"mac":"fc6585e300ad3cb21c5f648b16b8a59ca33bcf13c58197176ffee4786628eaeb"},"id":"4911f965-b425-4011-895d-a2008f859859","version":3}'
+  chainId: 12345
+  ## Use existing secret (ignores previous clefKeys)
+  # existingSecret:
+  ## Password for decrypting key (please change it for production deployments)
+  password: clefbeesecret
+  ## Use existing password (ignores previous keyPassword)
+  # existingPasswordSecret:
