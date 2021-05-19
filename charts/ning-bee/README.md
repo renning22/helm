@@ -5,7 +5,7 @@
 ## QuickStart
 
 ```bash
-$ helm install --generate-name ethersphere/bee
+$ helm install --generate-name renning22/ning-bee
 ```
 
 ## Introduction
@@ -22,7 +22,7 @@ This chart deploys a [Ethereum Swarm Bee](https://github.com/ethersphere/bee) on
 To install the chart with the release name `my-release`:
 
 ```bash
-$ helm install --name my-release ethersphere/bee
+$ helm install --name my-release renning22/ning-bee
 ```
 
 The command deploys Bee on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
@@ -48,7 +48,7 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 ```bash
 $ helm install --name my-release \
   --set serviceAccount.create=true \
-  ethersphere/bee
+  renning22/ning-bee
 ```
 
 The above command creates ServiceAccount for the deployment.
@@ -56,7 +56,7 @@ The above command creates ServiceAccount for the deployment.
 Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,
 
 ```bash
-$ helm install --name my-release -f values.yaml ethersphere/bee
+$ helm install --name my-release -f values.yaml renning22/ning-bee
 ```
 
 ## Helmsman Usage
@@ -78,14 +78,14 @@ namespaces:
   bee:
 
 helmRepos:
-  ethersphere: "https://ethersphere.github.io/helm"
+  ethersphere: "https://renning22.github.io/helm"
 
 apps:
   bee:
     name: bee
     namespace: bee
     description: "Ethereum Swarm Bee"
-    chart: "ethersphere/bee"
+    chart: "renning22/ning-bee"
     version: "0.7.6"
     enabled: true
     set:
@@ -110,14 +110,14 @@ namespaces:
   bee:
 
 helmRepos:
-  ethersphere: "https://ethersphere.github.io/helm"
+  ethersphere: "https://renning22.github.io/helm"
 
 apps:
   bee:
     name: bee
     namespace: bee
     description: "Ethereum Swarm Bee"
-    chart: "ethersphere/bee"
+    chart: "renning22/ning-bee"
     version: "0.7.6"
     enabled: true
     set:
