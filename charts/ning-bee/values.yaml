@@ -194,7 +194,7 @@ beeConfig:
   ## Debug HTTP API listen address
   debug_api_addr: :1635
   ## Enable debug HTTP API
-  debug_api_enable: false
+  debug_api_enable: true
   ## Set the run mode - light by default
   full_node: true
   ## Disable a set of sensitive features in the api
@@ -250,7 +250,7 @@ beeConfig:
   ## Service name identifier for tracing
   tracing_service_name: bee
   ## Log verbosity level 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=trace
-  verbosity: 4
+  verbosity: 3
   ## Send a welcome message string during handshakes
   welcome_message: "This is Ning's bee!"
 
