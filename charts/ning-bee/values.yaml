@@ -118,7 +118,7 @@ persistence:
   ## This enables PVC templates that will create one per pod
   enabled: true
   accessMode: ReadWriteOnce
-  size: 32Gi
+  size: 1Gi
   ## Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
