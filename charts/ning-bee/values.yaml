@@ -129,7 +129,7 @@ persistence:
 ## Enable this if you're using https://github.com/coreos/prometheus-operator
 ## and beeConfig.debug_api_enable is enabled
 serviceMonitor:
-  enabled: true
+  enabled: false
   additionalLabels: {}
   ## Specify a namespace if needed
   # namespace: monitoring
