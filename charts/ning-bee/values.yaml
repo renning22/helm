@@ -79,7 +79,7 @@ ingress:
 ## Hostname for 'per pod ingresses' is: <chart fullname>-debug-<i>, or <chart fullname>-debug-<i>.<domain> if domain is specified
 ## tls.secretName won't be specified if tlsSecret is "", tls must be set to true
 ingressDebug:
-  enabled: true
+  enabled: false
   ## Used if cluster version is >= 1.19-0
   pathType: ImplementationSpecific
   # ingressClassName: ingress-nginx
