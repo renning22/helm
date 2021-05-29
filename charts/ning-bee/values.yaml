@@ -92,7 +92,7 @@ ingressDebug:
       tlsSecret: ""
   tls: false
 
-replicaCount: 3
+replicaCount: 1
 
 updateStrategy:
   type: RollingUpdate
@@ -124,7 +124,7 @@ persistence:
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
   ## If undefined (the default) or set to null, no storageClassName spec is set;
   ## i.e. choosing the default provisioner: gp2 on AWS, standard on GKE, AWS & OpenStack, etc.
-  # storageClass: "-"
+  storageClass: "nfs-client"
 
 ## Enable this if you're using https://github.com/coreos/prometheus-operator
 ## and beeConfig.debug_api_enable is enabled
