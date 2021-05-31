@@ -2,13 +2,12 @@
 
 [![Release](https://github.com/renning22/helm/workflows/Release/badge.svg)](https://github.com/renning22/helm/actions?query=workflow%3ARelease)
 
-This repo contains renning22 Helm Charts:
-* [bee](https://github.com/renning22/helm/tree/master/charts/bee)
-* [beekeeper](https://github.com/renning22/helm/tree/master/charts/beekeeper)
-* [eks-local-disk-provisioner](https://github.com/renning22/helm/tree/master/charts/eks-local-disk-provisioner)
-* [geth-swap](https://github.com/renning22/helm/tree/master/charts/geth-swap)
-* [tokenexporter](https://github.com/renning22/helm/tree/master/charts/tokenexporter)
-* [ethexporter](https://github.com/renning22/helm/tree/master/charts/ethexporter)
+This is a custom Helm Chart for deploying and operating a large number of Etheruem Swarm (bee) nodes in k8s. 
+
+This is the main and only package:
+* [ning-bee](https://github.com/renning22/helm/tree/master/charts/ning-bee)
+
+Other files are just synced and kept unchanged from upstream offical.
 
 ## Enabling renning22 Helm repository
 
