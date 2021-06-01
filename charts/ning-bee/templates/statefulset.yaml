@@ -270,8 +270,6 @@ spec:
                 path: swarm.map
         {{- end }}
         {{- if .Values.clefSettings.enabled }}
-        - name: clef
-          emptyDir: {}
         - name: bee-clef
           secret:
             secretName: {{ template "bee.clefKeysSecretName" . }}
@@ -288,10 +286,29 @@ spec:
         {{- end }}
         {{- end }}
   {{- if not .Values.persistence.enabled }}
+        - name: clef
+          emptyDir: {}
         - name: data
           emptyDir: {}
   {{- else }}
   volumeClaimTemplates:
+  - metadata:
+      name: clef
+      labels:
+        {{- include "bee.labelsVCT" . | nindent 8 }}
+    spec:
+      accessModes:
+        - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.clefSize | quote }}
+    {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: {{ .Values.persistence.storageClass | quote }}
+      {{- end }}
+    {{- end }}
   - metadata:
       name: data
       labels:

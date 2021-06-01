@@ -118,6 +118,7 @@ persistence:
   ## This enables PVC templates that will create one per pod
   enabled: true
   accessMode: ReadWriteOnce
+  clefSize: 8Mi
   size: 32Gi
   ## Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
