@@ -235,7 +235,7 @@ beeConfig:
   ## Enable SWAP
   swap_enable: true
   ## Set swap ethereum blockchain endpoint
-  swap_endpoint: https://goerli.infura.io/v3/562b4c3a38a344f6892b133c4b79e928
+  swap_endpoint: https://goerli.infura.io/v3/f91375f9a9eb4e28af726a504a08f63b
   ## Set swap factory address
   swap_factory_address: ""
   ## Set swap legacy factory addresses
