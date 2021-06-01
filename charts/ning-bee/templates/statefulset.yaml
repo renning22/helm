@@ -103,6 +103,7 @@ spec:
               export KEY=$(cat /tmp/bee/clef.map | grep bee-${INDEX}: | cut -d' ' -f2);
               if [ -n "${KEY}" ]; then printf '%s' "${KEY}" > /app/data/keystore/clef.key; fi;
               /entrypoint.sh init;
+              ls -al /app/data/keystore;
               echo 'clef initialization done';
           volumeMounts:
             - name: clef
